@@ -1,0 +1,84 @@
+#version 400 core
+
+in vec3 v_color;
+
+out vec3 color;
+
+uniform int mode;
+
+uniform sampler2D myTex;
+in vec2 texCoord;
+
+uniform vec3 lightPosW;
+uniform vec3 lightCol;
+uniform float shinyN;
+uniform mat4 viewMat;
+
+
+in vec3 o_nor;
+in vec3 c_nor;
+
+in vec3 v_pos;
+
+uniform int isTex;
+uniform int isShadowV;
+uniform int isGraud;
+
+void main()
+{
+//	if(mode == 1)
+//	{
+//		color = v_color;	
+//	}
+//	if(mode == 2)
+//	{
+	if(isGraud==0){
+	//ÀÏ¹Ý µÅÁö
+			vec4 tex= texture(myTex,texCoord);
+			vec3 tex_color = vec3(tex.xyz);
+			//color = tex_color;
+		//³ë¸»ÄÃ·¯µÅÁö
+			 //color = c_nor;
+
+		//Æþ ½¦ÀÌµù µÅÁö
+			//vec4 lightPos4 = vec4(lightPosW,1.0);
+			//vec3 lightPosV = vec3(/*viewMat*/lightPos4);
+			vec3 lightDir = normalize(lightPosW-v_pos);
+
+			vec3 p_color;
+			if(isTex == 0)
+				p_color = v_color;
+			else if(isTex==1)
+				p_color = tex_color;
+			//¿¥ºñ¾ðÆ®
+			vec3 ambient_color = vec3(0.2,0.2,0.2)*p_color;
+
+			//µðÇ»Áî
+			float diffuse = dot(o_nor,lightDir);	
+			if(diffuse < 0){
+				diffuse = 0;
+			}
+			vec3 diffuse_color = vec3(0,0,0);
+			
+			diffuse_color = diffuse*p_color*lightCol;
+		
+			//½ºÆåÅ§·¯
+			vec3 reflectDir = reflect(-lightDir,o_nor);
+			vec3 viewDir = normalize(-v_pos);
+			float specular = pow(dot(reflectDir,viewDir),shinyN);
+			if(specular<0.0)
+				specular = 0.0;
+			vec3 specular_color = specular*lightCol;
+			if(isShadowV==1){
+				color = v_color;
+			}else{
+				color = specular_color + diffuse_color;
+			}
+		}
+		//±¸·Î½¦ÀÌµù
+		else if(isGraud==1){
+			color = v_color;
+		}
+
+//	}
+}
